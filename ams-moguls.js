@@ -26,6 +26,7 @@ ams.get('/sql-init', function(req,res){
 ams.post('/moguls/verify',function(req,res){
     "use strict";
 
+    // test
     if(!!req.body.vcode){
         Mogul.update({
             active: 1,
