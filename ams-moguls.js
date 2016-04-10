@@ -10,18 +10,95 @@ var port=3000;
 var Sequelize = require('sequelize');
 var sql = new Sequelize('ams', 'root', 'shell');
 
+var TODO_ENUMS = Object.freeze({
+    projects: {
+        AMS_MOGULS:1,
+        AMS_SERVER:2
+    },
+    priorities:{
+        HIGH:1,
+        MEDIUM:2,
+        LOW:3
+    },
+
+    types:{
+        TODO:1,
+        UPDATE:2,
+        FIX:3
+    }
+});
+
+
+
 app.set('trust proxy');
 app.use(bodyParser.json());
 
 var Mogul = sql.import(__dirname+'/models/mogul');
+var Todos = sql.import(__dirname+'/models/todos');
 
+ams.get('/todos/delete/:id',function(req,res){
+    "use strict";
+    Todos.destroy({id:req.params.id}).then(function(){
+        res.sendStatus(200).send("OK");
+    }).catch(function(error){
+        res.status(400).send(error);
+    });
+});
+ams.post('/todos/new',function(req,res){
+    "use strict";
+    console.log(req.body.todo);
+    Todos.build({
+        type:req.body.todo.type,
+        project: req.body.todo.project,
+        priority: req.body.todo.priority,
+        todo: req.body.todo.todo
+    }).save()
+        .then(function () {
+            res.sendStatus(200);
+        })
+        .catch(function (error) {
+            res.status(400).send(error);
+        });
+});
+
+/* GET TODOS
+@ params
+- project
+- priority
+- type
+ */
+ams.get('/todos',function (req,res) {
+    "use strict";
+    if(req.query){
+        var query={};
+        if(req.query.project) query.project = req.query.project;
+        if(req.query.priority) query.priority = req.query.priority;
+        if(req.query.type) query.type = req.query.type;
+
+        Todos.findAndCountAll(query).then(function(result){
+            res.json(result);
+        }).catch(function(error){
+            res.status(400).send(error);
+        });
+
+    }else{
+        
+        Todos.findAndCountAll().then(function(result){
+            res.json(result);
+        }).catch(function(error){
+            res.status(400).send(error);
+        });
+    }
+
+});
 ams.get('/sql-init', function(req,res){
     "use strict";
     Mogul.sync({force: true});
-
+    Todos.sync({force:true});
 
     res.send('OK');
 });
+
 
 ams.post('/moguls/verify',function(req,res){
     "use strict";
