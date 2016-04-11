@@ -6,27 +6,11 @@ var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt');
 var md5 = require('md5');
 var port=3000;
+var _ = require('lodash');
 
 var Sequelize = require('sequelize');
 var sql = new Sequelize('ams', 'root', 'shell');
 
-var TODO_ENUMS = Object.freeze({
-    projects: {
-        AMS_MOGULS:1,
-        AMS_SERVER:2
-    },
-    priorities:{
-        HIGH:1,
-        MEDIUM:2,
-        LOW:3
-    },
-
-    types:{
-        TODO:1,
-        UPDATE:2,
-        FIX:3
-    }
-});
 
 
 
@@ -36,9 +20,13 @@ app.use(bodyParser.json());
 var Mogul = sql.import(__dirname+'/models/mogul');
 var Todos = sql.import(__dirname+'/models/todos');
 
+ams.post('/login',function (req,res) {
+    console.log(req.body.login + ' '+req.body.password);
+    res.send(req.body.login + ' '+req.body.password);
+});
 ams.get('/todos/delete/:id',function(req,res){
     "use strict";
-    Todos.destroy({id:req.params.id}).then(function(){
+    Todos.destroy({where:{id:req.params.id}}).then(function(){
         res.sendStatus(200).send("OK");
     }).catch(function(error){
         res.status(400).send(error);
@@ -46,19 +34,25 @@ ams.get('/todos/delete/:id',function(req,res){
 });
 ams.post('/todos/new',function(req,res){
     "use strict";
-    console.log(req.body.todo);
-    Todos.build({
-        type:req.body.todo.type,
-        project: req.body.todo.project,
-        priority: req.body.todo.priority,
-        todo: req.body.todo.todo
-    }).save()
-        .then(function () {
-            res.sendStatus(200);
-        })
-        .catch(function (error) {
-            res.status(400).send(error);
-        });
+    if(!_.isEmpty(req.body.todo)){
+
+        console.log(req.body.todo);
+        Todos.build({
+            type:req.body.todo.type,
+            project: req.body.todo.project,
+            priority: req.body.todo.priority,
+            todo: req.body.todo.todo
+        }).save()
+            .then(function () {
+                res.sendStatus(200);
+            })
+            .catch(function (error) {
+                res.status(400).send(error);
+            });
+    }else{
+        console.log('empty');
+        res.status(400).send("empty");
+    }
 });
 
 /* GET TODOS
