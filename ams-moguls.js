@@ -1,5 +1,7 @@
 var express = require('express');
 var ams = express.Router();
+var protectedRoutes = express.Router();
+
 var app = express();
 var faker = require('faker');
 var bodyParser = require('body-parser');
@@ -11,19 +13,67 @@ var _ = require('lodash');
 var Sequelize = require('sequelize');
 var sql = new Sequelize('ams', 'root', 'shell');
 
-
-
+var morgan = require('morgan');
+var jwt = require('jsonwebtoken');
+app.set('superSecret','somesecretvalue');
+app.use(morgan('dev'));
 
 app.set('trust proxy');
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 var Mogul = sql.import(__dirname+'/models/mogul');
 var Todos = sql.import(__dirname+'/models/todos');
+protectedRoutes.use(function(req,res,next){
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    if(token){
+        jwt.verify(token,app.get('superSecret'),function(err,decoded){
+            if(err){
+                console.log('error decoding: '+err);
+                res.json({success:false,msg:'Failed to auth token'});
+            }else{
+                req.decoded = decoded;
+                next();
+            }
 
-ams.post('/login',function (req,res) {
-    console.log(req.body.login + ' '+req.body.password);
-    res.send(req.body.login + ' '+req.body.password);
+        })
+    }else{
+        res.status(403).send({success:false,msg:'no token provided'});
+    }
 });
+
+protectedRoutes.all('/test',function(req,res){
+    res.send('authorized');
+});
+ams.post('/login',function (req,res) {
+
+    Mogul.findOne({where:{email:req.body.login,active:1}}).then(function(user){
+        // found user
+        bcrypt.compare(req.body.password, user.password, function(err,isMatch){
+            if(err) console.log('error: '+err);
+            if(isMatch){
+                // password match
+                var obj = {
+                    id:user.id,
+                    email:user.email
+                };
+                var exp = 120;
+                jwt.sign(obj, app.get('superSecret'),{expiresIn:exp},function(tok){
+                    res.json({success:true,msg:"OK",token:tok});
+                    console.log('token1: '+tok);
+                });
+            }else{
+                // bad password
+                console.log('bad password')
+                res.json({success:false, msg:'Bad Username/Password'});
+            }
+        });
+    }).catch(function(error){
+        res.json({success:false, msg: 'Bad Username/Password'});
+    });
+
+});
+
 ams.get('/todos/delete/:id',function(req,res){
     "use strict";
     Todos.destroy({where:{id:req.params.id}}).then(function(){
@@ -32,8 +82,10 @@ ams.get('/todos/delete/:id',function(req,res){
         res.status(400).send(error);
     });
 });
+
 ams.post('/todos/new',function(req,res){
     "use strict";
+
     if(!_.isEmpty(req.body.todo)){
 
         console.log(req.body.todo);
@@ -152,6 +204,7 @@ ams.get('/states.json',function(req,res){
 });
 
 app.use('/api', ams);
+app.use('/api/protected',protectedRoutes);
 
 app.listen(port, function () {
     console.log('AMS API Server listening on port '+port);
