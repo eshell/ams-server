@@ -41,6 +41,12 @@ protectedRoutes.use(function(req,res,next){
         res.status(403).send({success:false,msg:'no token provided'});
     }
 });
+// app.use(function(req, res, next) {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+//     next();
+// });
 
 protectedRoutes.all('/test',function(req,res){
     res.send('authorized');
