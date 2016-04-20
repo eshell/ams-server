@@ -1,4 +1,5 @@
 var express = require('express');
+var http = require('http');
 var ams = express.Router();
 var protectedRoutes = express.Router();
 
@@ -19,15 +20,31 @@ app.set('superSecret','somesecretvalue');
 app.use(morgan('dev'));
 
 app.set('trust proxy');
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(function(req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+    next();
+});
+
+function createToken(user) {
+    return jwt.sign(user, app.get('superSecret'), { expiresIn: 60*2 });
+}
+// var jwtCheck = jwt.verify({
+//     secret: app.get('superSecret')
+// });
+
 
 var Mogul = sql.import(__dirname+'/models/mogul');
 var Todos = sql.import(__dirname+'/models/todos');
+
 protectedRoutes.use(function(req,res,next){
     var token = req.body.token || req.query.token || req.headers['x-access-token'];
     if(token){
-        jwt.verify(token,app.get('superSecret'),function(err,decoded){
+        jwt.verify(token, app.get('superSecret'),function(err,decoded){
             if(err){
                 console.log('error decoding: '+err);
                 res.json({success:false,msg:'Failed to auth token'});
@@ -41,12 +58,7 @@ protectedRoutes.use(function(req,res,next){
         res.status(403).send({success:false,msg:'no token provided'});
     }
 });
-// app.use(function(req, res, next) {
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
-//     next();
-// });
+// protectedRoutes.use(jwtCheck);
 
 protectedRoutes.all('/test',function(req,res){
     res.send('authorized');
@@ -61,21 +73,22 @@ ams.post('/login',function (req,res) {
                 // password match
                 var obj = {
                     id:user.id,
-                    email:user.email
+                    type:user.type
                 };
-                var exp = 120;
-                jwt.sign(obj, app.get('superSecret'),{expiresIn:exp},function(tok){
-                    res.json({success:true,msg:"OK",token:tok});
-                    console.log('token1: '+tok);
+                res.json({
+                    success:true,
+                    msg:"OK",
+                    ams_token: createToken(obj)
                 });
+
             }else{
                 // bad password
                 console.log('bad password')
-                res.json({success:false, msg:'Bad Username/Password'});
+                res.json({success:false, msg:'Bad Username/Password',ams_token:null});
             }
         });
     }).catch(function(error){
-        res.json({success:false, msg: 'Bad Username/Password'});
+        res.json({success:false, msg: 'Bad Username/Password',ams_token:null});
     });
 
 });
@@ -212,6 +225,6 @@ ams.get('/states.json',function(req,res){
 app.use('/api', ams);
 app.use('/api/protected',protectedRoutes);
 
-app.listen(port, function () {
+http.createServer(app).listen(port, function (err) {
     console.log('AMS API Server listening on port '+port);
 });
