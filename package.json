@@ -14,6 +14,9 @@
     "morgan": "^1.7.0",
     "mysql": "^2.10.2",
     "sequelize": "^3.20.0",
-    "compression":"latest"
+    "compression":"latest",
+    "busboy":"latest",
+    "connect-busboy":"latest",
+    "knox":"latest"
   }
 }

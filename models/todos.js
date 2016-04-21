@@ -1,6 +1,6 @@
-module.exports = function(sql,Sequelize){
+module.exports = function(mysql,Sequelize){
     "use strict";
-    return sql.define('todos',{
+    return mysql.define('todos',{
         id: { type: Sequelize.INTEGER.UNSIGNED, primaryKey:true, allowNull:false, autoIncrement:true },
         project:Sequelize.STRING,
         type:Sequelize.STRING,
