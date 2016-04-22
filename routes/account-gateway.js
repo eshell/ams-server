@@ -5,7 +5,16 @@ var config = require('../config/config'),
     bcrypt = require('bcrypt'),
     jwt = require('jsonwebtoken'),
     md5 = require('md5'),
+    nodemailer = require('nodemailer'),
     Mogul = mysql.import('../models/mogul');
+
+var transporter = nodemailer.createTransport({
+    service: config.email.gmail.service,
+    auth: {
+        user: config.email.gmail.auth.user,
+        pass: config.email.gmail.auth.pass
+    }
+});
 
 route.post('/login',function (req,res) {
 
@@ -91,7 +100,24 @@ route.post('/forgot-password-update',function(req,res){
 
 
 });
-
+function sendEmailCode(req,res,type,code){
+    var starttime=new Date();
+    var mailOptions = {
+        from: 'Eric Shell <'+config.email.gmail.auth.user+'>',
+        to: req.body.email,
+        subject: config.email[type].subject,
+        html: config.email[type].html + '<a href="'+config.email[type].link+code+'">'+config.email[type].link+code+'</a>'
+    };
+    transporter.sendMail(mailOptions, function(error){
+        if(error){
+            console.log(error);
+            res.status(400).send('email error'+error);
+        }else{
+            res.send(type+'-email sent');
+        }
+        console.log(starttime + ' - ' + new Date());
+    });
+}
 route.post('/forgot-password-reset',function(req,res){
     "use strict";
     Mogul.count({where:{email:req.body.email, active:1, code: null}}).then(function(count){
@@ -108,7 +134,9 @@ route.post('/forgot-password-reset',function(req,res){
                     code: null
                 }
             }).then(function(mogul){
-                res.status(200).json({message:'Reset code sent.'});
+                console.log('send pwreset email')
+                sendEmailCode(req,res,'passwordReset',code);
+                // res.status(200).json('Reset code sent.');
             }).catch(function(err){
                 console.log(err);
                 res.send(err).status(400);
@@ -133,14 +161,17 @@ route.post('/register',function(req,res){
             }else{
                 var now = new Date();
                 var salt = bcrypt.genSaltSync(10);
-
+                var code = md5(req.body.password + "_" + req.body.email + now);
                 Mogul.build({
                     email: req.body.email,
                     password: bcrypt.hashSync(req.body.password, salt),
-                    code: md5(req.body.password + "_" + req.body.email + now)
+                    code: code
                 }).save()
                     .then(function () {
-                        res.sendStatus(200);
+                        console.log('send verify email');
+
+                        sendEmailCode(req,res,'registration',code);
+                        // res.sendStatus(200);
                     })
                     .catch(function(err) {
                         res.status(400).send(err);

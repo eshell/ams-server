@@ -17,6 +17,7 @@
     "compression":"latest",
     "busboy":"latest",
     "connect-busboy":"latest",
-    "knox":"latest"
+    "knox":"latest",
+    "nodemailer":"latest"
   }
 }
