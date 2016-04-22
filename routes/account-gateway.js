@@ -19,11 +19,7 @@ route.post('/login',function (req,res) {
                     id:user.id,
                     type:user.type
                 };
-                res.json({
-                    success:true,
-                    msg:"OK",
-                    ams_token: createToken(obj)
-                });
+                res.send(createToken(obj));
 
             }else{
                 res.status(400).send('Bad Username/Password');

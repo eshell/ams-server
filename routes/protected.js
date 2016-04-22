@@ -3,26 +3,27 @@ var config = require('../config/config'),
     jwt = require('jsonwebtoken');
 
 
-    route.use(function(req,res,next){
-        var token = req.body.token || req.query.token || req.headers['x-access-token'];
-        if(token){
-            jwt.verify(token, app.get('superSecret'),function(err,decoded){
-                if(err){
-                    console.log('error decoding: '+err);
-                    res.json({success:false,msg:'Failed to auth token'});
-                }else{
-                    req.decoded = decoded;
-                    next();
-                }
-
-            })
-        }else{
-            res.status(403).send({success:false,msg:'no token provided'});
-        }
-    });
+    // route.use(function(req,res,next){
+    //     var token = req.body.token || req.query.token || req.headers['Authorization'];
+    //     if(token){
+    //         jwt.verify(token, config.jwt.secret,function(err,decoded){
+    //             if(err){
+    //                 console.log('error decoding: '+err);
+    //                 res.status(400).send('Failed to auth token');
+    //             }else{
+    //                 req.decoded = decoded;
+    //                 next();
+    //             }
+    //
+    //         })
+    //     }else{
+    //         res.status(400).send('protected:20-Invalid token.');
+    //     }
+    // });
 
     route.get('/',function(req,res){
         res.send('protectedd route');
     });
+
 
 module.exports = route;
