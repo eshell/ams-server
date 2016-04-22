@@ -143,12 +143,12 @@ route.post('/register',function(req,res){
                     password: bcrypt.hashSync(req.body.password, salt),
                     code: md5(req.body.password + "_" + req.body.email + now)
                 }).save()
-                .then(function () {
-                    res.sendStatus(200);
-                })
-                .catch(function(err) {
-                    res.status(400).send(err);
-                });
+                    .then(function () {
+                        res.sendStatus(200);
+                    })
+                    .catch(function(err) {
+                        res.status(400).send(err);
+                    });
             }
         }).catch(function(notFound){
             console.log('err'+notFound);

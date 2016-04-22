@@ -24,12 +24,5 @@ var config = require('../config/config'),
     route.get('/',function(req,res){
         res.send('protectedd route');
     });
-    // route.get('/sql-init', function(req,res){
-    //     "use strict";
-    //     Mogul.sync({force: true});
-    //     Todos.sync({force:true});
-    //
-    //     res.send('OK');
-    // });
 
 module.exports = route;

@@ -1,4 +1,8 @@
-var route = require('express').Router();
+var route = require('express').Router(),
+    config = require('../config/config'),
+    Sequelize = require('sequelize'),
+    mysql = new Sequelize(config.mysql.database, config.mysql.user, config.mysql.password),
+    Mogul = mysql.import('../models/mogul');
 
 
 
@@ -9,7 +13,14 @@ var route = require('express').Router();
         res.json(ret);
     });
 
+    route.get('/init', function(req,res){
+        "use strict";
+        Mogul.sync({force: true});
+        res.send('OK');
+    });
 
-
+    route.get('/populate',function(req,res){
+        res.send('fill with data');
+    });
 
 module.exports = route;
