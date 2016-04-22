@@ -60,7 +60,57 @@ route.post('/verify',function(req,res){
         res.status(400).send('no code');
     }
 });
+route.post('/forgot-password-update',function(req,res){
+    "use strict";
+    var salt = bcrypt.genSaltSync(10);
 
+    Mogul.update({
+        code: null,
+        password: bcrypt.hashSync(req.body.password, salt)
+    },{
+        where:{
+            code: req.body.code,
+            active:1
+        }
+    }).then(function(mogul){
+        res.status(200).json({message:'Password updated.'});
+    }).catch(function(err){
+        console.log(err);
+        res.send(err).status(400);
+    });
+
+});
+
+route.post('/forgot-password-reset',function(req,res){
+    "use strict";
+        Mogul.count({where:{email:req.body.email, active:1, code: null}}).then(function(count){
+            if(count){
+                var now = new Date();
+                var code = md5(req.body.email+now);
+
+                Mogul.update({
+                    code: code
+                },{
+                    where:{
+                        email:req.body.email,
+                        active:1,
+                        code: null
+                    }
+                }).then(function(mogul){
+                    res.status(200).json({message:'Reset code sent.'});
+                }).catch(function(err){
+                    console.log(err);
+                    res.send(err).status(400);
+                });
+
+            }else{
+                console.log(req.body.email+' hasn\'t been activated, or you have recently been sent reset instructions');
+                res.status(400).send(req.body.email+' hasn\'t been activated, or you have recently been sent reset instructions');
+            }
+        }).catch(function(err){
+            res.status(400).send(err);
+        });
+});
 
 route.post('/register',function(req,res){
     "use strict";
