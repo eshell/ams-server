@@ -2,10 +2,12 @@ var config = require('../config/config'),
     route = require('express').Router(),
     Sequelize = require('sequelize'),
     mysql = new Sequelize(config.mysql.database, config.mysql.user, config.mysql.password),
+    error_logDb = new Sequelize('error_log', config.mysql.user, config.mysql.password),
     bcrypt = require('bcrypt'),
     jwt = require('jsonwebtoken'),
     md5 = require('md5'),
     nodemailer = require('nodemailer'),
+    Errors = error_logDb.import('../models/error-log'),
     Mogul = mysql.import('../models/mogul');
 
 var transporter = nodemailer.createTransport({
@@ -18,23 +20,43 @@ var transporter = nodemailer.createTransport({
 
 route.post('/login',function (req,res) {
 
-    Mogul.findOne({where:{email:req.body.login,active:1}}).then(function(user){
-        // found user
-        bcrypt.compare(req.body.password, user.password, function(err,isMatch){
-            if(err) console.log('error: '+err);
-            if(isMatch){
-                // password match
-                var obj = {
-                    id:user.id,
-                    type:user.type
-                };
-                res.send(createToken(obj));
+    Mogul.findOne({where:{email:req.body.login,active:1,code:null}}).then(function(user){
+
+        Mogul.findOne({where:{email:req.body.login,active:1,code:{$not:null}}}).then(function(user2) {
+            if(user2){
+                Errors.create({ip:req.ip,file:'account-gateway.js:27',error:'You must reset your password!'});
+                res.status(400).send('You must reset your password!');
 
             }else{
-                res.status(400).send('Bad Username/Password');
+                bcrypt.compare(req.body.password, user.password, function(err,isMatch){
+                    if(err) Errors.create({ip:req.ip,file:'account-gateway.js:26',error:err});
+
+                    if(isMatch){
+                        // password match
+                        var obj = {
+                            id:user.id,
+                            type:user.type
+                        };
+                        res.send(createToken(obj));
+
+                    }else{
+                        Errors.create({ip:req.ip,file:'account-gateway.js:42',error:'Bad Username/Password'});
+                        res.status(400).send('Bad Username/Password');
+
+                    }
+                });
+
             }
+
+        }).catch(function(error){
+            Errors.create({ip:req.ip,file:'account-gateway.js:52',error:error});
+            res.sendStatus(400);
+
         });
+
+
     }).catch(function(error){
+        Errors.create({ip:req.ip,file:'account-gateway.js:42',error:'Bad Username/Password'});
         res.status(400).send('Bad Username/Password');
     });
 
@@ -48,21 +70,23 @@ route.post('/verify',function(req,res){
                 Mogul.update({active: 1,code: null},{
                     where:{code: req.body.code,active: 0}
                 }).then(function(mogul){
-                    res.status(200).json({msg:'OK'});
+                    res.sendStatus(200);
                 }).catch(function(err){
-                    console.log(err);
-                    res.send(err).status(400);
+                    Errors.create({ip:req.ip,file:'account-gateway.js:58',error:err});
+                    res.sendStatus(400);
                 });
 
             }else{
-                console.log('Invalid token: '+req.body.code);
-                res.status(400).send('Invalid token.');
+                Errors.create({ip:req.ip,file:'account-gateway.js:63',error:'Invalid token: '+req.body.code});
+                res.sendStatus(400);
             }
         }).catch(function(err){
-            res.status(400).send(err);
+            Errors.create({ip:req.ip,file:'account-gateway.js:67',error:err});
+            res.sendStatus(400);
         });
     }else{
-        res.status(400).send('no code');
+        Errors.create({ip:req.ip,file:'account-gateway.js:71',error:'no code'});
+        res.sendStatus(400);
     }
 });
 route.post('/forgot-password-update',function(req,res){
@@ -80,19 +104,19 @@ route.post('/forgot-password-update',function(req,res){
                     active:1
                 }
             }).then(function(){
-                res.status(200).send("OK");
+                res.sendStatus(200);
             }).catch(function(err){
-                console.log(err);
-                res.send(err).status(400);
+                Errors.create({ip:req.ip,file:'account-gateway.js:92',error:err});
+                res.sendStatus(400);
             });
 
         }else{
-            console.log('Invalid token: '+req.body.code);
-            res.status(400).send('Invalid token: '+req.body.code);
+            Errors.create({ip:req.ip,file:'account-gateway.js:97',error:'invalid token: '+req.body.code});
+            res.sendStatus(400);
         }
     }).catch(function(err){
-        console.log(err);
-        res.status(400).send(err);
+        Errors.create({ip:req.ip,file:'account-gateway.js:101',error:err});
+        res.sendStatus(400);
     });
 
 
@@ -101,7 +125,6 @@ route.post('/forgot-password-update',function(req,res){
 
 });
 function sendEmailCode(req,res,type,code){
-    var starttime=new Date();
     var mailOptions = {
         from: 'Eric Shell <'+config.email.gmail.auth.user+'>',
         to: req.body.email,
@@ -110,12 +133,11 @@ function sendEmailCode(req,res,type,code){
     };
     transporter.sendMail(mailOptions, function(error){
         if(error){
-            console.log(error);
-            res.status(400).send('email error'+error);
+            Errors.create({ip:req.ip,file:'account-gateway.js:119',error:'email error - '+error});
+            res.sendStatus(400);
         }else{
-            res.send(type+'-email sent');
+            res.sendStatus(200);
         }
-        console.log(starttime + ' - ' + new Date());
     });
 }
 route.post('/forgot-password-reset',function(req,res){
@@ -134,20 +156,19 @@ route.post('/forgot-password-reset',function(req,res){
                     code: null
                 }
             }).then(function(mogul){
-                console.log('send pwreset email')
                 sendEmailCode(req,res,'passwordReset',code);
-                // res.status(200).json('Reset code sent.');
             }).catch(function(err){
-                console.log(err);
-                res.send(err).status(400);
+                Errors.create({ip:req.ip,file:'account-gateway.js:145',error:err});
+                res.sendStatus(400);
             });
 
         }else{
-            console.log(req.body.email+' hasn\'t been activated, or you have recently been sent reset instructions');
+            Errors.create({ip:req.ip,file:'account-gateway.js:150',error:req.body.email+' hasn\'t been activated, or you have recently been sent reset instructions'});
             res.status(400).send(req.body.email+' hasn\'t been activated, or you have recently been sent reset instructions');
         }
     }).catch(function(err){
-        res.status(400).send(err);
+        Errors.create({ip:req.ip,file:'account-gateway.js:154',error:err});
+        res.sendStatus(400);
     });
 });
 
@@ -156,6 +177,7 @@ route.post('/register',function(req,res){
     if(req.body.password === req.body.password2) {
         Mogul.count({where:{email:req.body.email}}).then(function(found){
             if(found){
+                Errors.create({ip:req.ip,file:'account-gateway.js:164',error:'email('+req.body.email+') already exists!'});
                 res.status(400).send('Email already exists!');
 
             }else{
@@ -168,21 +190,20 @@ route.post('/register',function(req,res){
                     code: code
                 }).save()
                     .then(function () {
-                        console.log('send verify email');
-
                         sendEmailCode(req,res,'registration',code);
-                        // res.sendStatus(200);
                     })
                     .catch(function(err) {
-                        res.status(400).send(err);
+                        Errors.create({ip:req.ip,file:'account-gateway.js:180',error:err});
+                        res.sendStatus(400);
                     });
             }
         }).catch(function(notFound){
-            console.log('err'+notFound);
-            res.status(400).send(notFound);
+            Errors.create({ip:req.ip,file:'account-gateway.js:186',error:notFound+'|notfound?'});
+            res.sendStatus(400);
 
         });
     }else{
+        Errors.create({ip:req.ip,file:'account-gateway.js:191',error:'passwords do not match'});
         res.status(400).send('Passwords do not match.');
     }
 });

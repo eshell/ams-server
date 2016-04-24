@@ -3,11 +3,10 @@ var express = require('express'),
     http = require('http'),
     app = express(),
     jwt = require('jsonwebtoken'),
-    bodyParser = require('body-parser');
-    // faker = require('faker'),
-    // md5 = require('md5'),
-    // _ = require('lodash'),
-    // morgan = require('morgan'),
+    bodyParser = require('body-parser'),
+    Sequelize = require('sequelize'),
+    error_logDb = new Sequelize('error_log', config.mysql.user, config.mysql.password),
+    Errors = error_logDb.import('./models/error-log');
 
 app.set('trust proxy');
 
@@ -42,6 +41,7 @@ function ensureAuthorized(req, res, next) {
         });
         next();
     } else {
+        Errors.create({ip:req.ip,file:'ams.js',error:'bearerHeader got undefined'});
         res.sendStatus(403).end();
     }
 }

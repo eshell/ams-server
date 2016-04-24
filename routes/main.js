@@ -1,8 +1,8 @@
-var route = require('express').Router(),
-    config = require('../config/config'),
+var config = require('../config/config'),
+    route = require('express').Router(),
     Sequelize = require('sequelize'),
-    mysql = new Sequelize(config.mysql.database, config.mysql.user, config.mysql.password),
-    Mogul = mysql.import('../models/mogul');
+    error_logDb = new Sequelize('error_log', config.mysql.user, config.mysql.password),
+    Errors = error_logDb.import('../models/error-log');
 
 
 
@@ -13,14 +13,8 @@ var route = require('express').Router(),
         res.json(ret);
     });
 
-    route.get('/init', function(req,res){
-        "use strict";
-        Mogul.sync({force: true});
-        res.send('OK');
-    });
-
-    route.get('/populate',function(req,res){
-        res.send('fill with data');
+    route.post('/error-log',function(req,res){
+        Errors.create({ip:req.ip, file: req.body.file, error: req.body.error});
     });
 
 module.exports = route;
