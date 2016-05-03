@@ -21,6 +21,8 @@ app.use(function(req, res, next) {
     next();
 });
 
+
+
 app.use('/api', require('./routes/main'));
 app.use('/api/auth', require('./routes/account-gateway'));
 app.use('/api/protected',ensureAuthorized, require('./routes/protected'));

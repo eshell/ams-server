@@ -1,10 +1,18 @@
 var config = require('../config/config'),
     route = require('express').Router(),
     Sequelize = require('sequelize'),
-    error_logDb = new Sequelize('error_log', config.mysql.user, config.mysql.password),
-    Errors = error_logDb.import('../models/error-log');
+    mysql = new Sequelize(config.mysql.database, config.mysql.user, config.mysql.password),
+    Messages = mysql.import('../models/system-messages'),
+    Errors = mysql.import('../models/error-log');
 
+    route.get('/admin-message',function(req,res){
+        Messages.findOne().then(function(msg){
+            res.json(msg);
+        },function(err){
+            res.send(err);
+        });
 
+    });
 
     route.get('/states.json',function(req,res){
         "use strict";
