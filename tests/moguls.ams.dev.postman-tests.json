@@ -1,0 +1,102 @@
+{
+	"id": "79587d54-4bc2-f591-a371-7ed69c0bdc7d",
+	"name": "moguls.ams.dev",
+	"description": "api testing",
+	"order": [],
+	"folders": [
+		{
+			"id": "b3fcfb2c-e0ce-c737-e84b-4fc6e324b95a",
+			"name": "login",
+			"description": "",
+			"order": [
+				"fe687085-127a-e03d-11bc-ae55aa6a1d82",
+				"2c204b37-eba5-3176-a417-3d8b40cb8503"
+			],
+			"owner": 0
+		},
+		{
+			"id": "a45fecfc-d2b4-9e28-66e4-abb092167aab",
+			"name": "register",
+			"description": "",
+			"order": [],
+			"owner": 0
+		},
+		{
+			"id": "74d008fd-e84d-7846-579a-9c134596ba0e",
+			"name": "reset password",
+			"description": "",
+			"order": [],
+			"owner": 0
+		}
+	],
+	"timestamp": 1462409498898,
+	"owner": 0,
+	"remoteLink": "",
+	"public": false,
+	"requests": [
+		{
+			"id": "2c204b37-eba5-3176-a417-3d8b40cb8503",
+			"headers": "",
+			"url": "moguls.ams.dev/api/moguls/auth/login",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "login",
+					"value": "ericshell2010@gmail.com",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "testing",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"version": 2,
+			"tests": "tests[\"Status code is 400\"] = responseCode.code === 400;\ntests[\"Body is correct\"] = responseBody === \"Bad Username/Password\";",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1462412901479,
+			"name": "login bad password",
+			"description": "res.status(400)\n    .send('Bad Username/Password')",
+			"collectionId": "79587d54-4bc2-f591-a371-7ed69c0bdc7d",
+			"responses": []
+		},
+		{
+			"id": "fe687085-127a-e03d-11bc-ae55aa6a1d82",
+			"headers": "",
+			"url": "moguls.ams.dev/api/moguls/auth/login",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "login",
+					"value": "ericshell2010@gmail.com",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "test",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"version": 2,
+			"tests": "tests[\"Status code is 200\"] = responseCode.code === 200;",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1462413083251,
+			"name": "login good password",
+			"description": "res.status(200)\n    .send(ams_jwt_token)",
+			"collectionId": "79587d54-4bc2-f591-a371-7ed69c0bdc7d",
+			"responses": []
+		}
+	]
+}
