@@ -7,7 +7,8 @@ var config = require('../../config/config'),
     Messages = mysql.import('../../models/system-message'),
     Todos = mysql.import('../../models/todo');
 
-
+    // app.use(bodyParser.urlencoded());
+    // app.use(bodyParser.json());
 
 
 route.get('/init-messages',function(req,res){
@@ -31,7 +32,7 @@ route.get('/populate-all',function(req,res){
 });
 
 
-route.get('/init-moguls',function(req,res){
+route.post('/init-moguls',function(req,res){
     Moguls.sync({force: true});
     res.send('OK');
 

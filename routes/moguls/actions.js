@@ -17,6 +17,9 @@ var config = require('../../config/config'),
 //     }
 // });
 
+route.get('/test',function(req,res){
+   res.sendStatus(200);
+});
 route.post('/test',function(req,res){
     res.sendStatus(200);
 });

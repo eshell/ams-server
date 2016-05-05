@@ -28,9 +28,9 @@ function sendEmailCode(req,res,subject,html){
     transporter.sendMail(mailOptions, function(error){
         if(error){
             Errors.create({ip:req.ip,file:'account-gateway.js:119',error:'email error - '+error});
-            res.sendStatus(400);
+            res.status(400).send('email not sent to '+req.body.email);
         }else{
-            res.sendStatus(200);
+            res.status(200).send('Email sent to '+req.body.email);
         }
     });
 }

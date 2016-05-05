@@ -2,7 +2,7 @@ var config = require('../config/config'),
     route = require('express').Router(),
     Sequelize = require('sequelize'),
     mysql = new Sequelize(config.mysql.database, config.mysql.user, config.mysql.password),
-    Messages = mysql.import('../models/system-messages'),
+    Messages = mysql.import('../models/system-message'),
     Errors = mysql.import('../models/error-log');
 
     route.get('/admin-message',function(req,res){

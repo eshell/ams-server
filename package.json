@@ -14,10 +14,13 @@
     "morgan": "^1.7.0",
     "mysql": "^2.10.2",
     "sequelize": "^3.20.0",
-    "compression":"latest",
-    "busboy":"latest",
-    "connect-busboy":"latest",
-    "knox":"latest",
-    "nodemailer":"latest"
+    "compression": "latest",
+    "busboy": "latest",
+    "connect-busboy": "latest",
+    "knox": "latest",
+    "nodemailer": "latest"
+  },
+  "devDependencies": {
+    "body-parser": "^1.15.0"
   }
 }

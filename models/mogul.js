@@ -9,9 +9,19 @@ module.exports = function(mysql,Sequelize){
         },
         email: {
             type: Sequelize.STRING,
-            unique:true
+            unique:true,
+            allowNull:false,
+            validate:{
+                isEmail:true
+            }
         },
-        password: Sequelize.STRING,
+        password: {
+            type: Sequelize.STRING,
+            validate:{
+                notEmpty:true
+            }
+        },
+
         active: { 
             type: Sequelize.BOOLEAN, 
             allowNull: false, 
