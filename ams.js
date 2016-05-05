@@ -2,15 +2,12 @@ var express = require('express'),
     config = require('./config/config'),
     http = require('http'),
     app = express(),
-    jwt = require('jsonwebtoken'),
     bodyParser = require('body-parser'),
-    Sequelize = require('sequelize'),
-    error_logDb = new Sequelize('error_log', config.mysql.user, config.mysql.password),
-    Errors = error_logDb.import('./models/error-log');
+    ensureAuthorized = require('./utils/auth').ensureAuthorized,
+    ensureAdmin = require('./utils/auth').ensureAdmin;
 
 app.set('trust proxy');
 
-// app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
@@ -21,34 +18,11 @@ app.use(function(req, res, next) {
     next();
 });
 
-
-
 app.use('/api', require('./routes/main'));
-app.use('/api/auth', require('./routes/account-gateway'));
-app.use('/api/protected',ensureAuthorized, require('./routes/protected'));
+app.use('/api/moguls/actions', ensureAuthorized, require('./routes/moguls/actions'));
+app.use('/api/moguls/auth', require('./routes/moguls/auth'));
+app.use('/api/admin', ensureAdmin, require('./routes/admin/main'));
 
-function ensureAuthorized(req, res, next) {
-
-    var bearerToken;
-    var bearerHeader = req.headers["authorization"];
-
-    if (typeof bearerHeader !== 'undefined') {
-        var bearer = bearerHeader.split(" ");
-        bearerToken = bearer[1];
-
-        jwt.verify(bearerToken, config.jwt.secret,function(err,decoded){
-            if(err) res.sendStatus(403);
-            req.token = bearerToken;
-            req.decoded = decoded;
-        });
-        next();
-    } else {
-        Errors.create({ip:req.ip,file:'ams.js',error:'bearerHeader got undefined'});
-        res.sendStatus(403).end();
-    }
-}
-
-
-http.createServer(app).listen(config.port, function (err) {
+http.createServer(app).listen(config.port, function () {
     console.log('AMS API Server listening on port '+config.port);
 });
