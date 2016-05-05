@@ -1,0 +1,80 @@
+{
+	"id": "be1d864f-458f-5e07-c0b8-cddce3e37450",
+	"name": "server.ams.dev",
+	"description": "",
+	"order": [
+		"f4972967-2b65-1cb0-a11e-adb3ab942192",
+		"3a39cf78-793d-7e6e-b357-c4727856d009"
+	],
+	"folders": [],
+	"timestamp": 1462412760170,
+	"owner": "",
+	"remoteLink": "",
+	"public": false,
+	"requests": [
+		{
+			"id": "3a39cf78-793d-7e6e-b357-c4727856d009",
+			"headers": "",
+			"url": "moguls.ams.dev/api/admin/test",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "user",
+					"value": "admin",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "pass",
+					"value": "admins",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"version": 2,
+			"tests": "tests[\"Status code is 403\"] = responseCode.code === 403;\n\n\ntests[\"Body is correct\"] = responseBody === \"Forbidden\";",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1462413198180,
+			"name": "admin area bad login",
+			"description": "res.status(403)\n",
+			"collectionId": "be1d864f-458f-5e07-c0b8-cddce3e37450",
+			"responses": []
+		},
+		{
+			"id": "f4972967-2b65-1cb0-a11e-adb3ab942192",
+			"headers": "",
+			"url": "moguls.ams.dev/api/admin/test",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "user",
+					"value": "admin",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "pass",
+					"value": "admin",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"version": 2,
+			"tests": "tests[\"Status code is 200\"] = responseCode.code === 200;",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1462412801041,
+			"name": "admin area",
+			"description": "res.status(200)\n",
+			"collectionId": "be1d864f-458f-5e07-c0b8-cddce3e37450",
+			"responses": []
+		}
+	]
+}
