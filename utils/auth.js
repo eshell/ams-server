@@ -5,11 +5,6 @@ var jwt = require('jsonwebtoken'),
     Errors = mysql.import('../models/error-log');
 
 
-module.exports = {
-    createJwt:createJwt,
-    ensureAuthorized: ensureAuthorized,
-    ensureAdmin: ensureAdmin
-};
 
 function createJwt(user) {
     return jwt.sign(user, config.jwt.secret, { expiresIn: config.jwt.expiration });
@@ -45,3 +40,8 @@ function ensureAuthorized(req, res, next) {
     }
 }
 
+module.exports = {
+    createJwt:createJwt,
+    ensureAuthorized: ensureAuthorized,
+    ensureAdmin: ensureAdmin
+};

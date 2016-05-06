@@ -16,6 +16,7 @@ var config = require('../../config/config'),
  * @param password
  *
  * TESTED
+ * TODO: track number of logins?
  */
 route.post('/login',function (req,res) {
     if(typeof req.body.login === 'undefined' || typeof req.body.password === 'undefined' || !req.body.login || !req.body.password){
@@ -36,7 +37,7 @@ route.post('/login',function (req,res) {
                     // password match
                     var obj = {
                         id: user.id,
-                        type: user.type
+                        email: user.email
                     };
                     res.send(jwtAuth.createJwt(obj));
 
@@ -55,40 +56,6 @@ route.post('/login',function (req,res) {
     }
 });
 
-/**
- * Mogul Password Change - manual
- * TODO: implement
- */
-// route.post('/password-change',function(req,res){
-//     "use strict";
-//     Mogul.count({where:{active:1, code: req.body.code}}).then(function(count){
-//         if(count){
-//             var salt = bcrypt.genSaltSync(10);
-//
-//             Mogul.update({
-//                 code: null,
-//                 password: bcrypt.hashSync(req.body.password, salt)
-//             },{
-//                 where:{
-//                     code: req.body.code,
-//                     active:1
-//                 }
-//             }).then(function(){
-//                 res.sendStatus(200);
-//             }).catch(function(err){
-//                 Errors.create({ip:req.ip,file:'account-gateway.js:92',error:err});
-//                 res.sendStatus(400);
-//             });
-//
-//         }else{
-//             Errors.create({ip:req.ip,file:'account-gateway.js:97',error:'invalid token: '+req.body.code});
-//             res.sendStatus(400);
-//         }
-//     }).catch(function(err){
-//         Errors.create({ip:req.ip,file:'account-gateway.js:101',error:err});
-//         res.sendStatus(400);
-//     });
-// });
 
 /**
  * Password Reset / Forgot Password
